@@ -3,6 +3,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <fcntl.h>
 
 #define TAM_MAX_LINHA_DE_CMD 2000
 #define TAM_MAX_CMD 1000
@@ -13,7 +14,8 @@
 static void limpaTerminal();
 void leLinhaDeComando(char* comando);
 char* separaLinhaEmComandos(char* linhaDeComando, const char* delimitador);
-void executaComando(char* comando, char* argumentos[]);
+void executaComando(char* comando, char* argumentos[], char * array[], int sizeArray);
+int executaEmForeground(char* comando, char* argumentos[]);
 
 
 /*========== Main ==========*/
@@ -26,8 +28,8 @@ int main(int argc, char **argv) {
 
   pid_t pid = getpid();
   pid_t spid = getsid(pid);
-  printf("PID do acsh: %d\n", pid);
-  printf("PID da sessão do acsh: %d\n", spid);
+  // printf("PID do acsh: %d\n", pid);
+  // printf("PID da sessão do acsh: %d\n", spid);
 
   while (1) {
     leLinhaDeComando(linhaDeComando);
@@ -38,9 +40,9 @@ int main(int argc, char **argv) {
     while (token != NULL) {
       char cmd[TAM_MAX_CMD];
       int i = 0, j = 0;
-      char* array[100];
+      char * array[100];
 
-      /* Transformar a linha em palavras */
+      // /* Transformar a linha em palavras */
       token2 = strtok(token, DELIMITADOR_ARG);
       while (token2 != NULL) {
         array[i] = strdup(token2);
@@ -53,7 +55,7 @@ int main(int argc, char **argv) {
       for (j = 0; j < i; j++) argumentos[j] = array[j];
       argumentos[j] = NULL; // O último argumento é NULL
 
-      executaComando(cmd, argumentos);
+      executaComando(cmd, argumentos, array, i);
 
       token = separaLinhaEmComandos(NULL, DELIMITADOR_COMANDO); // Próximo comando
 
@@ -97,9 +99,24 @@ char* separaLinhaEmComandos(char* linhaDeComando, const char* delimitador) {
   return tokenAtual;
 }
 
-void executaComando(char* comando, char* argumentos[]) {
+void executaComando(char* comando, char* argumentos[], char * array[], int sizeArray) {
   if (strcmp(comando, "exit") == 0) {
+    for (int j = 0; j < sizeArray; j++) free(array[j]); 
     exit(0); // Finaliza o programa
+
+  } else if (strcmp(comando, "cd") == 0) {
+  /* 
+    Caso o comando seja cd, nenhum processo filho é criado,
+    apenas alteramos o diretório de trabalho do processo pai
+  */
+    int i = 0;
+    while (argumentos[i] != NULL) i++;
+    
+    const char* homeDir = getenv("HOME"); // Vai pra pasta home caso não tenha argumentos
+    if (!argumentos[1]) chdir(homeDir);
+
+    chdir(argumentos[i-1]);
+    return;
   }
 
   /* Cria um processo separado para executar o comando */
@@ -110,8 +127,20 @@ void executaComando(char* comando, char* argumentos[]) {
 
   } else if (pid == 0) { // Processo filho
     pid_t spid = getsid(getpid());
-    printf("PID do processo filho: %d\n", getpid());
-    printf("PID da sessão do processo filho: %d\n", spid);
+    // printf("PID do processo filho: %d\n", getpid());
+    // printf("PID da sessão do processo filho: %d\n", spid);
+
+    if (!executaEmForeground(comando, argumentos)) {
+      /* 
+        Redirecionar entrada, saída e saída de erro para /dev/null, 
+        para executar em background 
+      */
+      int devnull = open("/dev/null", O_RDWR);
+      dup2(devnull, STDIN_FILENO);
+      dup2(devnull, STDOUT_FILENO);
+      dup2(devnull, STDERR_FILENO);
+      close(devnull);
+    }
 
     /* Executar o comando no processo filho */
     execvp(comando, argumentos);
@@ -122,6 +151,22 @@ void executaComando(char* comando, char* argumentos[]) {
 
   } else { // Processo pai
     int status;
-    waitpid(pid, &status, 0);
+    waitpid(pid, &status, 0); // Esperar o processo filho terminar
   }
+}
+
+int executaEmForeground(char* comando, char* argumentos[]) {
+  int i = 0;
+  while (argumentos[i] != NULL) i++;
+
+  /* Comandos internos devem ser executados em foreground sempre */
+  if (strcmp(comando, "exit") == 0 || strcmp(comando, "cd") == 0) return 1;
+
+  /* Se o último argumento for "%", executar em foreground */
+  if (i > 0 && strcmp(argumentos[i-1], "%") == 0) {
+    argumentos[i-1] = NULL;
+    return 1;
+  }
+
+  return 0;
 }

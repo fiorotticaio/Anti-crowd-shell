@@ -13,7 +13,7 @@ compile:
 run:
 	@ ./prog ${QTD_MAX_ARGS}
 
-val:
+val: compile 
 	@ valgrind --leak-check=full ./prog ${QTD_MAX_ARGS}
 
 clean:
