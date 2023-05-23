@@ -1,3 +1,4 @@
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,25 +14,26 @@
 /*========== Cabeçalho das funções ==========*/
 static void limpaTerminal();
 void leLinhaDeComando(char* comando);
+void handlerSinalCtrlC(int signum);
 char* separaLinhaEmComandos(char* linhaDeComando, const char* delimitador);
 void executaComando(char* comando, char* argumentos[], char * array[], int sizeArray);
 int executaEmForeground(char* comando, char* argumentos[]);
 
-
 /*========== Main ==========*/
 int main(int argc, char **argv) {
   int qtdMaxArgumentos = argv[1] != NULL ? atoi(argv[1]) : 3; 
-
   char linhaDeComando[TAM_MAX_LINHA_DE_CMD], *token, *token2, *argumentos[qtdMaxArgumentos];
-
   limpaTerminal();
 
   pid_t pid = getpid();
   pid_t spid = getsid(pid);
   // printf("PID do acsh: %d\n", pid);
   // printf("PID da sessão do acsh: %d\n", spid);
+  
+  signal(SIGINT, handlerSinalCtrlC);
 
   while (1) {
+
     leLinhaDeComando(linhaDeComando);
 
     setsid(); // Cria uma nova sessão para o processo filho
@@ -41,7 +43,6 @@ int main(int argc, char **argv) {
       char cmd[TAM_MAX_CMD];
       int i = 0, j = 0;
       char * array[100];
-
       // /* Transformar a linha em palavras */
       token2 = strtok(token, DELIMITADOR_ARG);
       while (token2 != NULL) {
@@ -50,19 +51,14 @@ int main(int argc, char **argv) {
         i++;
       }
       strcpy(cmd, array[0]); // A primeira palavra é o comando em si
-
       /* As outras palavras são os argumentos */
       for (j = 0; j < i; j++) argumentos[j] = array[j];
       argumentos[j] = NULL; // O último argumento é NULL
-
       executaComando(cmd, argumentos, array, i);
-
       token = separaLinhaEmComandos(NULL, DELIMITADOR_COMANDO); // Próximo comando
-
       /* Liberar a memória alocada para cada palavra do comando */
       for (j = 0; j < i; j++) free(array[j]); 
     }
-
   }
 
   return 0;
@@ -76,8 +72,18 @@ static void limpaTerminal() {
 
 void leLinhaDeComando(char* comando) {
   printf("acsh> ");
+
+  //TODO: inserir loop para ler cada caracter e detectar o signal ?
+  // while () {
+  //    scanf
+  // }
+
   fgets(comando, TAM_MAX_LINHA_DE_CMD, stdin);
   comando[strcspn(comando, "\n")] = '\0';  // Remover o caractere de nova linha
+}
+
+void handlerSinalCtrlC(int signum){
+  printf("Não adianta me enviar o sinal por Ctrl-... Estou vacinado!!\n");
 }
 
 // TODO: Entender essa função obscura do nosso amigo Chat 
