@@ -15,7 +15,7 @@
 /*========== Cabeçalho das funções ==========*/
 static void limpaTerminal();
 void leLinhaDeComando(char* comando);
-void handlerSinalCtrlC();
+void sinalCtrlC(int sinal);
 char* separaLinhaEmComandos(char* linhaDeComando, const char* delimitador);
 void executaComando(char* comando, char* argumentos[], char * array[], int sizeArray);
 int executaEmForeground(char* comando, char* argumentos[]);
@@ -32,16 +32,14 @@ int main(int argc, char **argv) {
   // printf("PID da sessão do acsh: %d\n", spid);
   
   // chamando o 'listener' de sinais'
-  signal(SIGINT, handlerSinalCtrlC);
+  signal(SIGINT, sinalCtrlC);
 
   while (1) {
     leLinhaDeComando(linhaDeComando);
 
     // FIXME: se setar outra sessão, a detecção de sinais fica em segundo plano
     //        e então ele nao mostra a mensagem na tela
-    
     setsid(); // Cria uma nova sessão para o processo filho
-    
 
     token = separaLinhaEmComandos(linhaDeComando, DELIMITADOR_COMANDO); // Separa a linha de comando com o delimitador
     while (token != NULL) {
@@ -82,8 +80,9 @@ void leLinhaDeComando(char* comando) {
   comando[strcspn(comando, "\n")] = '\0';  // Remover o caractere de nova linha
 }
 
-void handlerSinalCtrlC(){
+void sinalCtrlC(int sinal){
   fprintf(stderr, "\nNão adianta me enviar o sinal por Ctrl-... Estou vacinado!!\nacsh> ");
+  if (getsid(getpid()) == getpid()) kill(getpid(), SIGINT);
 }
 
 // TODO: Entender essa função obscura do nosso amigo Chat 
