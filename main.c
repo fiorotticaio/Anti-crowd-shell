@@ -11,10 +11,11 @@
 #define DELIMITADOR_COMANDO " <3 "
 #define DELIMITADOR_ARG " "
 
+// TODO: josex falou que tem que modularizar
 /*========== Cabeçalho das funções ==========*/
 static void limpaTerminal();
 void leLinhaDeComando(char* comando);
-void handlerSinalCtrlC(int signum);
+void handlerSinalCtrlC();
 char* separaLinhaEmComandos(char* linhaDeComando, const char* delimitador);
 void executaComando(char* comando, char* argumentos[], char * array[], int sizeArray);
 int executaEmForeground(char* comando, char* argumentos[]);
@@ -30,10 +31,10 @@ int main(int argc, char **argv) {
   // printf("PID do acsh: %d\n", pid);
   // printf("PID da sessão do acsh: %d\n", spid);
   
+  // chamando o 'listener' de sinais'
   signal(SIGINT, handlerSinalCtrlC);
 
   while (1) {
-
     leLinhaDeComando(linhaDeComando);
 
     setsid(); // Cria uma nova sessão para o processo filho
@@ -73,23 +74,18 @@ static void limpaTerminal() {
 void leLinhaDeComando(char* comando) {
   printf("acsh> ");
 
-  //TODO: inserir loop para ler cada caracter e detectar o signal ?
-  // while () {
-  //    scanf
-  // }
-
   fgets(comando, TAM_MAX_LINHA_DE_CMD, stdin);
   comando[strcspn(comando, "\n")] = '\0';  // Remover o caractere de nova linha
 }
 
-void handlerSinalCtrlC(int signum){
-  printf("Não adianta me enviar o sinal por Ctrl-... Estou vacinado!!\n");
+void handlerSinalCtrlC(){
+  fprintf(stderr, "\nNão adianta me enviar o sinal por Ctrl-... Estou vacinado!!\nacsh> ");
 }
 
 // TODO: Entender essa função obscura do nosso amigo Chat 
 char* separaLinhaEmComandos(char* linhaDeComando, const char* delimitador) {
   static char* token = NULL;
-  if (linhaDeComando != NULL) token = linhaDeComando;
+  if (linhaDeComando != NULL && strcmp(linhaDeComando, "\n")!=0) token = linhaDeComando;
   if (token == NULL) return NULL;
 
   char* posDelimitador = strstr(token, delimitador);
@@ -107,8 +103,11 @@ char* separaLinhaEmComandos(char* linhaDeComando, const char* delimitador) {
 
 void executaComando(char* comando, char* argumentos[], char * array[], int sizeArray) {
   if (strcmp(comando, "exit") == 0) {
+    /*
+      Caso seja exit, saia do programa
+    */
     for (int j = 0; j < sizeArray; j++) free(array[j]); 
-    exit(0); // Finaliza o programa
+    exit(0); 
 
   } else if (strcmp(comando, "cd") == 0) {
   /* 
@@ -123,7 +122,7 @@ void executaComando(char* comando, char* argumentos[], char * array[], int sizeA
 
     chdir(argumentos[i-1]);
     return;
-  }
+  } 
 
   /* Cria um processo separado para executar o comando */
   pid_t pid = fork();
