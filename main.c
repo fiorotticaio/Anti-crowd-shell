@@ -37,7 +37,11 @@ int main(int argc, char **argv) {
   while (1) {
     leLinhaDeComando(linhaDeComando);
 
+    // FIXME: se setar outra sessão, a detecção de sinais fica em segundo plano
+    //        e então ele nao mostra a mensagem na tela
+    
     setsid(); // Cria uma nova sessão para o processo filho
+    
 
     token = separaLinhaEmComandos(linhaDeComando, DELIMITADOR_COMANDO); // Separa a linha de comando com o delimitador
     while (token != NULL) {
