@@ -17,7 +17,7 @@
 
 void limpaTerminalAcsh();
 
-void leLinhaDeComandoAcsh(char* comando);
+int leLinhaDeComandoAcsh(char* comando);
 
 int contaComandosAcsh(char* linhaDeComando, const char* delimitador);
 

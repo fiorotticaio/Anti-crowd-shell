@@ -4,11 +4,26 @@ void limpaTerminalAcsh() {
   printf("\033[2J\033[H"); // clear
 }
 
-void leLinhaDeComandoAcsh(char* comando) {
+int leLinhaDeComandoAcsh(char* comando) {
   printf("acsh> ");
 
   fgets(comando, TAM_MAX_LINHA_DE_CMD, stdin);
+  
+  int qtdComandos = contaComandosAcsh(comando, DELIMITADOR_COMANDO);
+  if (qtdComandos > QTD_MAX_COMANDOS) {
+    fprintf(stderr, "Não é possível executar mais de %d comandos por vez\n", QTD_MAX_COMANDOS);
+    return 0;
+  }
+
+  // Tratando quando o usuário usa Ctrl+D que é quando ele envia um EOF para o acsh
+  if (!comando || strlen(comando) == 0) {
+    fprintf(stderr, "O comando é uma string NULA, saindo do acsh...\n");
+    exit(1);
+  }
+
   comando[strcspn(comando, "\n")] = '\0';  // Remover o caractere de nova linha
+
+  return 1;
 }
 
 int contaComandosAcsh(char* linhaDeComando, const char* delimitador) {
@@ -66,6 +81,8 @@ int trataLinhaDeComandoAcsh(char* linhaDeComando, int qtdMaxArgumentos) {
 
       /* Liberar a memória alocada para cada palavra do comando */
       for (j = 0; j < i; j++) free(array[j]); 
+
+      
     }
 
   } else { // Processo pai
@@ -140,7 +157,7 @@ void executaComandoAcsh(char* comando, char* argumentos[], char * array[], int s
 
     /* Se execlp retornar, houve um erro */
     fprintf(stderr, "Erro ao executar o comando: %s\n", comando);
-    exit(1);
+    exit(1); //TODO: esse sinal não está sendo tratado pelo processo PAI
 
   } else if (pid > 0) {
     int status;
