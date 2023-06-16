@@ -1,2 +1,5 @@
 prog
 .vscode
+*.o
+especificacao.pdf
+*.out
