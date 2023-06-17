@@ -42,6 +42,16 @@ int contaComandosAcsh(char *linhaDeComando, const char *delimitador) {
   return count + 2;
 }
 
+/* Verifica o usuário quer rodar varios programas em foreground */
+static int ehLinhaDeComandoValida(char *linhaDeComando) {
+  if 
+  (
+    strstr(linhaDeComando, DELIMITADOR_COMANDO) != NULL &&
+    strstr(linhaDeComando, "%") != NULL
+  ) return 0;
+  else return 1;
+}
+
 int trataLinhaDeComandoAcsh(char *linhaDeComando, int qtdMaxArgumentos) {
 
   pid_t pid = fork(); // Cria um processo separado para executar o(s) comando(s)
@@ -51,6 +61,11 @@ int trataLinhaDeComandoAcsh(char *linhaDeComando, int qtdMaxArgumentos) {
     exit(1);
   }
   else if (pid == 0) { // Processo filho
+
+    if (!ehLinhaDeComandoValida(linhaDeComando)) {
+      printf("Nao eh possivel executar varios comandos em foreground!\n");
+      exit(1);
+    }
 
     pid_t novoSIdFilho = setsid(); // Criar uma nova sessão para o processo filho
 
