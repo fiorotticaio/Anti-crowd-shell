@@ -5,7 +5,7 @@
 
 QTD_MAX_ARGS = 2
 
-all: clean compile
+all: clean compile run
 
 compile: acsh
 	@ gcc -o prog *.o 
