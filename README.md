@@ -13,7 +13,7 @@ Nessas seção marque as funcionalidades já implementadas e adicione as que ain
 Nessa seção marque os problemas que foram resolvidos e adicione os problemas ainda a resolver
 
 - [x] Faltando 1 free no valgrind
-- [ ] Processos filho devem ser todos de uma mesma seção, diferente do pai
+- [x] Processos filho devem ser todos de uma mesma seção, diferente do pai
 - [x] o sinal Ctrl+D envia o caracter EOF para o acsh, e ai entra em loop infinito
 - [ ] usar o comando `ls acsh.c acsh.h acsh.o main.c %` faz com que o acsh saia
       sem nenhuma mensagem de log nem nada aparentemente esse comportamento acontece
