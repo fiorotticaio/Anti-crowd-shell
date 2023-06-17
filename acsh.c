@@ -65,6 +65,8 @@ int trataLinhaDeComandoAcsh(char *linhaDeComando, int qtdMaxArgumentos)
     pid_t novoSIdFilho = setsid(); // Criar uma nova sessão para o processo filho
 
     char *token, *token2, *argumentos[qtdMaxArgumentos];
+    token = separaLinhaEmComandosAcsh(linhaDeComando, DELIMITADOR_COMANDO); // Separa a linha de comando com o delimitador
+
     while (token != NULL)
     {
       char cmd[TAM_MAX_CMD];
@@ -179,19 +181,13 @@ void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int si
     execvp(comando, argumentos);
 
     /* Se execlp retornar, houve um erro */
-    exit(1);
+    fprintf(stderr, "Erro ao executar o comando: %s\n", comando);
+    exit(1); // TODO: esse sinal não está sendo tratado pelo processo PAI
   }
   else if (pid > 0)
   {
     int status;
-    while (wait(&status) != -1)
-    {
-      if (WIFEXITED(status))
-      {
-        if (WEXITSTATUS(status) == 1)
-          printf("Comando %s não encontrado\n", comando); // Esse é o tratamento?
-      }
-    }
+    waitpid(pid, &status, 0); // Esperar o processo filho terminar
   }
 }
 
