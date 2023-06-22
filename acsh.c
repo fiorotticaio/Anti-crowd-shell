@@ -44,11 +44,13 @@ int contaComandosAcsh(char *linhaDeComando, const char *delimitador) {
 
 /* Verifica o usuário quer rodar varios programas em foreground */
 static int ehLinhaDeComandoValida(char *linhaDeComando) {
-  if 
-  (
-    strstr(linhaDeComando, DELIMITADOR_COMANDO) != NULL &&
-    strstr(linhaDeComando, "%") != NULL
-  ) return 0;
+  if (strstr(linhaDeComando, DELIMITADOR_COMANDO) != NULL &&
+      strstr(linhaDeComando, "%") != NULL
+  ) { // Tem <3 e %
+    return 0;
+  } else if (strstr(linhaDeComando, DELIMITADOR_COMANDO) == NULL) { // Não tem <3
+    return -1; // Para mostrar que é um comando único
+  }
   else return 1;
 }
 
@@ -62,9 +64,14 @@ int trataLinhaDeComandoAcsh(char *linhaDeComando, int qtdMaxArgumentos) {
   }
   else if (pid == 0) { // Processo filho
 
-    if (!ehLinhaDeComandoValida(linhaDeComando)) {
+    bool ehComandoUnico = false; // Para tratar o sinal SIGUSR1
+
+    int rtn = ehLinhaDeComandoValida(linhaDeComando);
+    if (rtn == 0) { // Linha de comando com <3 e %
       printf("Nao eh possivel executar varios comandos em foreground!\n");
       exit(1);
+    } else if (rtn == -1) { // Comando único
+      ehComandoUnico = true;
     }
 
     pid_t novoSIdFilho = setsid(); // Criar uma nova sessão para o processo filho
@@ -91,7 +98,7 @@ int trataLinhaDeComandoAcsh(char *linhaDeComando, int qtdMaxArgumentos) {
         argumentos[j] = array[j];
       argumentos[j] = NULL; // O último argumento é NULL
 
-      executaComandoAcsh(cmd, argumentos, array, i);
+      executaComandoAcsh(cmd, argumentos, array, i, ehComandoUnico);
       token = separaLinhaEmComandosAcsh(NULL, DELIMITADOR_COMANDO); // Próximo comando
 
       /* Liberar a memória alocada para cada palavra do comando */
@@ -126,12 +133,11 @@ char *separaLinhaEmComandosAcsh(char *linhaDeComando, const char *delimitador) {
 }
 
 static void sigusr1Handler(int sinal) {
-  printf("SIGUSR1 recebido por %d\n", getpid());
   pid_t sid = getsid(getpid());
   kill(-sid, SIGTERM); // Envia o sinal SIGTERM para todos os processos na sessão
 }
 
-void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int sizeArray) {
+void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int sizeArray, bool ehComandoUnico) {
 
   if (strcmp(comando, "exit") == 0) {
     /* Caso seja exit, saia do programa */
@@ -161,7 +167,12 @@ void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int si
 
   } else if (pid == 0) { // Processo filho
 
-    signal(SIGUSR1, sigusr1Handler); // Implementa o tratador do SIGUSR1
+    /* Implementa o tratador do SIGUSR1 caso não seja um comando único */
+    if (!ehComandoUnico) {
+      signal(SIGUSR1, sigusr1Handler); // Tratador personalizado
+    } else {
+      signal(SIGUSR1, SIG_IGN); // Ignora sinal
+    }
 
     if (!executaEmForegroundAcsh(comando, argumentos)) {
       /*
