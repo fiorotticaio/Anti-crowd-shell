@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
   int qtdMaxArgumentos = argv[1] != NULL ? atoi(argv[1]) : 3;
   char linhaDeComando[TAM_MAX_LINHA_DE_CMD];
 
-  limpaTerminalAcsh(); // Limpa o terminal antes de começar
+  // limpaTerminalAcsh(); // Limpa o terminal antes de começar
 
   int rtn = 0; // Valor de retorno da função trataLinhaDeComandoAcsh
   int failureSafetyFlag = 0;

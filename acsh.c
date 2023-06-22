@@ -125,6 +125,12 @@ char *separaLinhaEmComandosAcsh(char *linhaDeComando, const char *delimitador) {
   return tokenAtual;
 }
 
+static void sigusr1Handler(int sinal) {
+  printf("SIGUSR1 recebido por %d\n", getpid());
+  pid_t sid = getsid(getpid());
+  kill(-sid, SIGTERM); // Envia o sinal SIGTERM para todos os processos na sessão
+}
+
 void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int sizeArray) {
 
   if (strcmp(comando, "exit") == 0) {
@@ -154,6 +160,8 @@ void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int si
     exit(1);
 
   } else if (pid == 0) { // Processo filho
+
+    signal(SIGUSR1, sigusr1Handler); // Implementa o tratador do SIGUSR1
 
     if (!executaEmForegroundAcsh(comando, argumentos)) {
       /*
