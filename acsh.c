@@ -167,14 +167,14 @@ void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int si
 
   } else if (pid == 0) { // Processo filho
 
-    /* Implementa o tratador do SIGUSR1 caso não seja um comando único */
-    if (!ehComandoUnico) {
-      signal(SIGUSR1, sigusr1Handler); // Tratador personalizado
-    } else {
-      signal(SIGUSR1, SIG_IGN); // Ignora sinal
-    }
-
     if (!executaEmForegroundAcsh(comando, argumentos)) {
+      /* Implementa o tratador do SIGUSR1 caso não seja um comando único */
+      if (!ehComandoUnico) {
+        signal(SIGUSR1, sigusr1Handler); // Tratador personalizado
+      } else {
+        signal(SIGUSR1, SIG_IGN); // Ignora sinal
+      }
+
       /*
         Redirecionar entrada, saída e saída de erro para /dev/null,
         para executar em background
@@ -185,6 +185,8 @@ void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int si
       dup2(devnull, STDERR_FILENO);
       close(devnull);
     }
+
+    sleep(10);
 
     /* Executar o comando no processo filho */
     execvp(comando, argumentos);
