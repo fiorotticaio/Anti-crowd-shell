@@ -4,7 +4,7 @@
 
 Nessas seção marque as funcionalidades já implementadas e adicione as que ainda faltam ser implementadas
 
-- [ ] Outra particularidade do acsh é que o sinal SIGUSR1 é um sinal muito perigoso e contagioso! Se um dos processos de background morre devido ao SIGUSR1, os demais processos “irmãos” que se encontram na mesma sessão (ou seja, que foram criados na mesma linha de comando) devem morrer de forma coletiva, devido ao mesmo sinal
+- [x] Outra particularidade do acsh é que o sinal SIGUSR1 é um sinal muito perigoso e contagioso! Se um dos processos de background morre devido ao SIGUSR1, os demais processos “irmãos” que se encontram na mesma sessão (ou seja, que foram criados na mesma linha de comando) devem morrer de forma coletiva, devido ao mesmo sinal
 - [ ] se um processo de background for criado isoladamente, como neste exemplo: acsh > comando1 ... ele não poderá morrer devido ao sinal SIGUSR1… nunca!
 - [ ] acsh> comando1 % Neste exemplo acima, o acsh deverá criar um processo em foreground e pertencendo à mesma sessão do acsh . Neste caso, o prompt só será novamente exibido ao final da execução do processo de foreground criado
 - [x] se tiver <3 não pode ter %
