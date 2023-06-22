@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 #include <signal.h>
 #include <unistd.h>
 #include <sys/wait.h>
@@ -25,7 +26,7 @@ int trataLinhaDeComandoAcsh(char* linhaDeComando, int qtdMaxArgumentos);
 
 char* separaLinhaEmComandosAcsh(char* linhaDeComando, const char* delimitador);
 
-void executaComandoAcsh(char* comando, char* argumentos[], char * array[], int sizeArray);
+void executaComandoAcsh(char* comando, char* argumentos[], char * array[], int sizeArray, bool ehComandoUnico);
 
 int executaEmForegroundAcsh(char* comando, char* argumentos[]);
 
