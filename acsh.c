@@ -6,9 +6,7 @@ void limpaTerminalAcsh() {
 
 int leLinhaDeComandoAcsh(char *comando) {
   printf("acsh> ");
-
   fgets(comando, TAM_MAX_LINHA_DE_CMD, stdin);
-
   int qtdComandos = contaComandosAcsh(comando, DELIMITADOR_COMANDO);
   if (qtdComandos > QTD_MAX_COMANDOS) {
     fprintf(stderr, "Não é possível executar mais de %d comandos por vez\n", QTD_MAX_COMANDOS);
@@ -56,6 +54,7 @@ static int ehLinhaDeComandoValida(char *linhaDeComando) {
 
 int trataLinhaDeComandoAcsh(char *linhaDeComando, int qtdMaxArgumentos) {
 
+  pid_t acshSid = getsid(getpid());
   pid_t pid = fork(); // Cria um processo separado para executar o(s) comando(s)
 
   if (pid < 0) {
@@ -74,7 +73,7 @@ int trataLinhaDeComandoAcsh(char *linhaDeComando, int qtdMaxArgumentos) {
       ehComandoUnico = true;
     }
 
-    pid_t novoSIdFilho = setsid(); // Criar uma nova sessão para o processo filho
+
 
     char *token, *token2, *argumentos[qtdMaxArgumentos];
     token = separaLinhaEmComandosAcsh(linhaDeComando, DELIMITADOR_COMANDO); // Separa a linha de comando com o delimitador
@@ -97,8 +96,12 @@ int trataLinhaDeComandoAcsh(char *linhaDeComando, int qtdMaxArgumentos) {
       for (j = 0; j < i; j++)
         argumentos[j] = array[j];
       argumentos[j] = NULL; // O último argumento é NULL
+      
+      if(!ehComandoUnico && strcmp(argumentos[j-1], "%") != 0) { // Se forem vários comandos em background, cria um mesmo session id para todos
+        pid_t novoSIdFilho = setsid(); // Criar uma nova sessão para o processo filho
+      }
 
-      executaComandoAcsh(cmd, argumentos, array, i, ehComandoUnico);
+      executaComandoAcsh(cmd, argumentos, array, i, ehComandoUnico, acshSid);
       token = separaLinhaEmComandosAcsh(NULL, DELIMITADOR_COMANDO); // Próximo comando
 
       /* Liberar a memória alocada para cada palavra do comando */
@@ -137,7 +140,7 @@ static void sigusr1Handler(int sinal) {
   kill(-sid, SIGTERM); // Envia o sinal SIGTERM para todos os processos na sessão
 }
 
-void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int sizeArray, bool ehComandoUnico) {
+void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int sizeArray, bool ehComandoUnico, pid_t acshSID) {
 
   if (strcmp(comando, "exit") == 0) {
     /* Caso seja exit, saia do programa */
@@ -166,7 +169,6 @@ void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int si
     exit(1);
 
   } else if (pid == 0) { // Processo filho
-
     if (!executaEmForegroundAcsh(comando, argumentos)) {
       /* Implementa o tratador do SIGUSR1 caso não seja um comando único */
       if (!ehComandoUnico) {
@@ -174,16 +176,24 @@ void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int si
       } else {
         signal(SIGUSR1, SIG_IGN); // Ignora sinal
       }
-
       /*
         Redirecionar entrada, saída e saída de erro para /dev/null,
         para executar em background
       */
+     if(ehComandoUnico) {
+        setsid(); // Criar uma nova sessão para o processo filho
+     }
       int devnull = open("/dev/null", O_RDWR);
       dup2(devnull, STDIN_FILENO);
       dup2(devnull, STDOUT_FILENO);
       dup2(devnull, STDERR_FILENO);
       close(devnull);
+    }else{
+      // signal(SIGINT, trataSinalPadrao);
+      // signal(SIGQUIT, trataSinalPadrao);
+      // signal(SIGTSTP, trataSinalPadrao);
+
+      // ta bugado <-
     }
 
     sleep(10);
@@ -216,4 +226,10 @@ int executaEmForegroundAcsh(char *comando, char *argumentos[]) {
   }
 
   return 0;
+}
+
+void trataSinalPadrao(){
+  signal(SIGINT, SIG_DFL); // Restaura o tratamento padrão para SIGINT
+  signal(SIGQUIT, SIG_DFL); // Restaura o tratamento padrão para SIGQUIT
+  signal(SIGTSTP, SIG_DFL); // Restaura o tratamento padrão para SIGTSTP
 }
