@@ -177,6 +177,13 @@ void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int si
         signal(SIGUSR1, SIG_IGN); // Ignora sinal
       }
       /*
+        Executa tratamento padrão para todos os sinais
+      */
+      signal(SIGINT, SIG_DFL);
+      signal(SIGQUIT, SIG_DFL);
+      signal(SIGTSTP, SIG_DFL);
+
+      /*
         Redirecionar entrada, saída e saída de erro para /dev/null,
         para executar em background
       */
@@ -197,7 +204,7 @@ void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int si
       // ta bugado <-
     }
 
-    sleep(10);
+    sleep(30);
 
     /* Executar o comando no processo filho */
     execvp(comando, argumentos);

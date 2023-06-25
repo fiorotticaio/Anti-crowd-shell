@@ -9,7 +9,7 @@ Nessas seção marque as funcionalidades já implementadas e adicione as que ain
 - [X] acsh> comando1 % Neste exemplo acima, o acsh deverá criar um processo em foreground e pertencendo à mesma sessão do acsh . Neste caso, o prompt só será novamente exibido ao final da execução do processo de foreground criado
 - [x] se tiver <3 não pode ter %
 - [?] se houver um processo de foreground rodando, então este deve receber qualquer sinal gerado via “Ctrl-...” e executar o tratamento default.
-- [ ] Quanto aos processos de background, estes não receberão nenhum sinal gerado via “Ctrl-...”, como é esperado. Mas, obviamente, se alguém enviar um sinal para um dos processos de background via chamada “kill”, esse sinal deverá ser entregue normalmente ao processo, o qual deverá executar o tratamento default (lembrando daquela pequena exceção do SIGUSR1 ... no caso de um processo em background que tenha sido criado isoladamente, ele se encontra protegido em sua respectiva sessão, então ele não morre devido ao SIGUSR1 … )
+- [X] Quanto aos processos de background, estes não receberão nenhum sinal gerado via “Ctrl-...”, como é esperado. Mas, obviamente, se alguém enviar um sinal para um dos processos de background via chamada “kill”, esse sinal deverá ser entregue normalmente ao processo, o qual deverá executar o tratamento default (lembrando daquela pequena exceção do SIGUSR1 ... no caso de um processo em background que tenha sido criado isoladamente, ele se encontra protegido em sua respectiva sessão, então ele não morre devido ao SIGUSR1 … )
 
 
 ## BUGS
