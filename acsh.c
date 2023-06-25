@@ -204,7 +204,7 @@ void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int si
       // ta bugado <-
     }
 
-    sleep(30);
+    sleep(10);
 
     /* Executar o comando no processo filho */
     execvp(comando, argumentos);

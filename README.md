@@ -30,6 +30,8 @@ Nessa seção marque os problemas que foram resolvidos e adicione os problemas a
 - [X] o comando sleep não está sendo executado em background
 - [ ] o sinal Ctrl+D não é tratado caso seja utilizado juntamento com outros textos,
       e ele faz com que infinitos processos sejam criados
+- [ ] quando um sinal é enviado para o processo em foreground, este executa o tratamento default,
+      mas o sinal também é enviado para o processo do acsh
 
 ## EXTRA
 
