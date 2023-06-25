@@ -189,9 +189,10 @@ void executaComandoAcsh(char *comando, char *argumentos[], char *array[], int si
       dup2(devnull, STDERR_FILENO);
       close(devnull);
     }else{
-      // signal(SIGINT, trataSinalPadrao);
-      // signal(SIGQUIT, trataSinalPadrao);
-      // signal(SIGTSTP, trataSinalPadrao);
+      //processo em foreground
+      signal(SIGINT, SIG_DFL);
+      signal(SIGQUIT, SIG_DFL);
+      signal(SIGTSTP, SIG_DFL);
 
       // ta bugado <-
     }
@@ -226,10 +227,4 @@ int executaEmForegroundAcsh(char *comando, char *argumentos[]) {
   }
 
   return 0;
-}
-
-void trataSinalPadrao(){
-  signal(SIGINT, SIG_DFL); // Restaura o tratamento padrão para SIGINT
-  signal(SIGQUIT, SIG_DFL); // Restaura o tratamento padrão para SIGQUIT
-  signal(SIGTSTP, SIG_DFL); // Restaura o tratamento padrão para SIGTSTP
 }
