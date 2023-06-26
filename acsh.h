@@ -20,22 +20,13 @@
 void limpaTerminalAcsh();
 
 int leLinhaDeComandoAcsh(char* comando);
-
+int ehLinhaDeComandoValida(char *linhaDeComando);
 int contaComandosAcsh(char* linhaDeComando, const char* delimitador);
+int trataLinhaDeComandoAcsh(char* linhaDeComando, int qtdMaxArgumentos, pid_t * arraySessoesBG, int * sizeArraySessoesBG);
 
-int trataLinhaDeComandoAcsh(char* linhaDeComando, int qtdMaxArgumentos, pid_t * arraySessoesBG,
-    int * sizeArraySessoesBG);
-
-char* separaLinhaEmComandosAcsh(char* linhaDeComando, const char* delimitador);
-
-void executaComandoAcsh(char* comando, char* argumentos[], char * array[], int sizeArray, 
-    bool ehComandoUnico, pid_t * arraySessoesBG, int * sizeArraySessoesBG);
-
-int comandoEhForeground(char *argumentos[]);
-
-void executaEmForeground(char ** argumentos);
-
-void executaEmBackground(char ** argumentos, bool ehComandoUnico, pid_t * arraySessoesBG, 
-    int * sizeArraySessoesBG, char *array[], int sizeArray);
+void executaCD(char * argumentos[]);
+void executaEmForeground(char * argumentos[], int qtdMaxArgumentos);
+void executaExit(char *array[], int sizeArray, pid_t * arraySessoesBG, int * sizeArraySessoesBG);
+void executaEmBackground(char * argumentos[], int qtdMaxArgumentos, bool ehComandoUnico, pid_t * arraySessoesBG, int * sizeArraySessoesBG);
 
 #endif // ACSH_H
