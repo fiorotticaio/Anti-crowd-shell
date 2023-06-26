@@ -187,10 +187,10 @@ void executaEmBackground(char * argumentos[], int qtdMaxArgumentos, bool ehComan
     if (!ehComandoUnico) {
       signal(SIGUSR1, sigusr1Handler); // Tratador personalizado
 
-
       // Passando por um loop de comandos (comandos agrupados)
-      int i=0, j=0;
+      int i=0;
       for(i=0;i<qtdMaxArgumentos;i++){
+        int j=0;
         if (argumentos[i]==NULL) break;
         
         // Destrinchando cada comando em um vetor (variável array) com argumentos
@@ -201,15 +201,6 @@ void executaEmBackground(char * argumentos[], int qtdMaxArgumentos, bool ehComan
           token = strtok(NULL, DELIMITADOR_ARG);
         }
         array[j] = NULL;
-
-
-        //FIXME: tem um problema aqui em algum lugar, isso aqui embaixo é para debugar
-        
-        // for (int k=0;k<j;k++) {
-        //   printf("array[%d]: %s\n", k, array[k]);
-        //   if (array[k] == NULL) break;
-        // }
-
 
         // Iniciando um fork para executar o código
         int pid = fork();
@@ -236,19 +227,7 @@ void executaEmBackground(char * argumentos[], int qtdMaxArgumentos, bool ehComan
           // Se execvp retornar, houve um erro
           fprintf(stderr, "Erro ao executar o comando: %s\n", array[0]);
           exit(1); 
-
-
-        // Processo pai (session leader) espera pela execução do filho
-        } else {
-          // int status;
-          // waitpid(pid, &status, 0); 
-          // if(WIFEXITED(status)) {
-          //   if(WEXITSTATUS(status) == 1) fprintf(stderr, "Programa encerrado com EXIT 1.\n");
-          //   else if(WEXITSTATUS(status) == 2) fprintf(stderr, "Programa encerrado com EXIT 2.\n");
-          // }
-        }
-
-        // exit(0);
+        } 
       }
         
     // Se for comando único
@@ -270,7 +249,10 @@ void executaEmBackground(char * argumentos[], int qtdMaxArgumentos, bool ehComan
       exit(1); 
     }
 
-    // Terminando o session leader após tudo acabar
+    // Terminando o session leader após tudo acabar (esperando os outros terminarem)
+    int status;
+    pid_t pid = waitpid(-1, &status, 0);
+    if(WEXITSTATUS(status) == 1) fprintf(stderr, "Programa encerrado com EXIT 1.\n");
     exit(0);
     
   } else {
