@@ -32,6 +32,11 @@ Nessa seção marque os problemas que foram resolvidos e adicione os problemas a
       e ele faz com que infinitos processos sejam criados
 - [ ] quando um sinal é enviado para o processo em foreground, este executa o tratamento default,
       mas o sinal também é enviado para o processo do acsh
+- [ ] após um comando em background executar, ele nao vira zumbi, mas fica esperando uma entrada do   
+      acsh e então e vira uma recursão onde o prox comando vai ser recebido pelo acsh desse 
+      processo filho que não virou zumbi e então o prox vai fazer o mesmo..... ao final fica 
+      um monte de processo encadeado, sendo que deveria existir vários zumbis...
+- [ ] o comando cd não deve ser executado com <3 (tratar isso)
 
 ## EXTRA
 

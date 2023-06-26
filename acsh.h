@@ -15,6 +15,7 @@
 #define DELIMITADOR_COMANDO " <3 "
 #define DELIMITADOR_ARG " "
 #define QTD_MAX_COMANDOS 5
+#define MAX_PROCSS_BKGRND 1000
 
 void limpaTerminalAcsh();
 
@@ -22,15 +23,19 @@ int leLinhaDeComandoAcsh(char* comando);
 
 int contaComandosAcsh(char* linhaDeComando, const char* delimitador);
 
-int trataLinhaDeComandoAcsh(char* linhaDeComando, int qtdMaxArgumentos);
+int trataLinhaDeComandoAcsh(char* linhaDeComando, int qtdMaxArgumentos, pid_t * arraySessoesBG,
+    int * sizeArraySessoesBG);
 
 char* separaLinhaEmComandosAcsh(char* linhaDeComando, const char* delimitador);
 
-void executaComandoAcsh(char* comando, char* argumentos[], char * array[], int sizeArray, bool ehComandoUnico, pid_t acshSID);
+void executaComandoAcsh(char* comando, char* argumentos[], char * array[], int sizeArray, 
+    bool ehComandoUnico, pid_t * arraySessoesBG, int * sizeArraySessoesBG);
 
-int executaEmForegroundAcsh(char* comando, char* argumentos[]);
+int comandoEhForeground(char *argumentos[]);
 
-void trataSinalPadrao();
+void executaEmForeground(char ** argumentos);
 
+void executaEmBackground(char ** argumentos, bool ehComandoUnico, pid_t * arraySessoesBG, 
+    int * sizeArraySessoesBG, char *array[], int sizeArray);
 
 #endif // ACSH_H
