@@ -30,24 +30,33 @@ int main(int argc, char **argv) {
   /* Declaração de variáveis importantes */
   int qtdMaxArgumentos = argv[1] != NULL ? atoi(argv[1]) : 3;
   char linhaDeComando[TAM_MAX_LINHA_DE_CMD];
+  for (int j=0;j<TAM_MAX_LINHA_DE_CMD;j++) linhaDeComando[j] = '\0';
 
   // limpaTerminalAcsh(); // Limpa o terminal antes de começar
 
-  int rtn = 0; // Valor de retorno da função trataLinhaDeComandoAcsh
+  // Valor de retorno da função trataLinhaDeComandoAcsh
+  int rtn = 0; 
+
+  // Flag de segurança para nao permitir loop infinito
   int failureSafetyFlag = 0;
 
+  // array com sessions ID das sessões dos processo em background 
+  // que forem criados (isso é para poder matar todos quando usar o exit)
+  pid_t arraySessoesBG[MAX_PROCSS_BKGRND];
+  for (int j=0;j<MAX_PROCSS_BKGRND;j++) arraySessoesBG[j] = 0;
+  int sizeArraySessoesBG = 0;
+
   while (1) {
-    if (!leLinhaDeComandoAcsh(linhaDeComando)) continue;
-
-    rtn = trataLinhaDeComandoAcsh(linhaDeComando, qtdMaxArgumentos);
-
-    if (rtn == 0) // acsh> exit
-      break;
-
-    if (failureSafetyFlag > 100) {
-      fprintf(stderr, "Ops, cai em loop infinito! Saindo...");
+    if (failureSafetyFlag++ > 50) {
+      fprintf(stderr, "\n\n[ERROR] Ops, cai em loop infinito! Saindo...\n\n");
       exit(1);
     }
+
+    if (!leLinhaDeComandoAcsh(linhaDeComando)) continue;
+    
+    rtn = trataLinhaDeComandoAcsh(linhaDeComando, qtdMaxArgumentos, arraySessoesBG, &sizeArraySessoesBG);
+
+    if (rtn == 0) break; // acsh> exit
   }
 
   return 0;

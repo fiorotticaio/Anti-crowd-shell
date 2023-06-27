@@ -3,3 +3,4 @@ prog
 *.o
 especificacao.pdf
 *.out
+acsh.c.backup

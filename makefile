@@ -5,7 +5,7 @@
 
 QTD_MAX_ARGS = 2
 
-all: clean compile run
+all: clean compile 
 
 compile: acsh
 	@ gcc -o prog *.o 
@@ -21,10 +21,3 @@ val: clean compile
 
 clean:
 	@ rm -rf *.o prog
-
-
-# gcc -c -o bin/executa_prompt.o src/executa_prompt.c
-# gcc -c -o bin/main.o src/main.c
-# gcc -c -o bin/processa_prompt.o src/processa_prompt.c
-# gcc -c -o bin/recebe_prompt.o src/recebe_prompt.c
-# gcc -o trab1 bin/executa_prompt.o bin/main.o bin/processa_prompt.o bin/recebe_prompt.o
