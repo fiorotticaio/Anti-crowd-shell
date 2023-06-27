@@ -18,7 +18,6 @@
 #define MAX_PROCSS_BKGRND 1000
 
 void limpaTerminalAcsh();
-
 int leLinhaDeComandoAcsh(char* comando);
 int ehLinhaDeComandoValida(char *linhaDeComando);
 int contaComandosAcsh(char* linhaDeComando, const char* delimitador);
@@ -26,7 +25,7 @@ int trataLinhaDeComandoAcsh(char* linhaDeComando, int qtdMaxArgumentos, pid_t * 
 
 void executaCD(char * argumentos[]);
 void executaEmForeground(char * argumentos[], int qtdMaxArgumentos);
-void executaExit(char *array[], int sizeArray, pid_t * arraySessoesBG, int * sizeArraySessoesBG);
+void executaExit(pid_t * arraySessoesBG, int * sizeArraySessoesBG);
 void executaEmBackground(char * argumentos[], int qtdMaxArgumentos, bool ehComandoUnico, pid_t * arraySessoesBG, int * sizeArraySessoesBG);
 
 #endif // ACSH_H

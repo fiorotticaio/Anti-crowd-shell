@@ -34,7 +34,10 @@ int main(int argc, char **argv) {
 
   // limpaTerminalAcsh(); // Limpa o terminal antes de começar
 
-  int rtn = 0; // Valor de retorno da função trataLinhaDeComandoAcsh
+  // Valor de retorno da função trataLinhaDeComandoAcsh
+  int rtn = 0; 
+
+  // Flag de segurança para nao permitir loop infinito
   int failureSafetyFlag = 0;
 
   // array com sessions ID das sessões dos processo em background 

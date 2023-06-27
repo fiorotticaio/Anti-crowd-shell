@@ -38,7 +38,7 @@ int contaComandosAcsh(char *linhaDeComando, const char *delimitador) {
       count++;
   }
 
-  return count + 2;
+  return count + 3;
 }
 
 /* Verifica qual caso de uso está sendo feito com a linha de comando atual */
@@ -64,10 +64,6 @@ int ehLinhaDeComandoValida(char *linhaDeComando) {
 }
 
 int trataLinhaDeComandoAcsh(char *linhaDeComando, int qtdMaxArgumentos, pid_t * arraySessoesBG, int * sizeArraySessoesBG) {
-
-  pid_t acshSid = getsid(getpid()); //TODO: tirar isso (nao ta sendo usado, acredito que tenha sido para teste)
-  fprintf(stderr, "ACSH SID: %d\n", acshSid);
-  
   int i=0;
   bool ehComandoUnico = false; 
   char * argumentos[qtdMaxArgumentos];
@@ -83,7 +79,7 @@ int trataLinhaDeComandoAcsh(char *linhaDeComando, int qtdMaxArgumentos, pid_t * 
   // Linha de comando com (<3 e %) ou com (<3 e cd) ou com (<3 e exit) ou com (cd e exit)
   if (rtn == 0) { 
     fprintf(stderr, "Nao eh possivel executar varios comandos em foreground!\n");
-    return rtn;  
+    return 1;  
   
   // Varios comandos em background (situação que usa o DELIMITADOR_COMANDO)
   } else if (rtn == 4) {
@@ -112,7 +108,7 @@ int trataLinhaDeComandoAcsh(char *linhaDeComando, int qtdMaxArgumentos, pid_t * 
 
     // Linha de comando com exit
     } else if (rtn == 2) {
-      executaExit(argumentos, qtdMaxArgumentos, arraySessoesBG, sizeArraySessoesBG);
+      executaExit(arraySessoesBG, sizeArraySessoesBG);
 
     // Comando em background mas é único
     } else if (rtn == 3) {
@@ -129,19 +125,15 @@ int trataLinhaDeComandoAcsh(char *linhaDeComando, int qtdMaxArgumentos, pid_t * 
 }
 
 
-
 static void sigusr1Handler(int sinal) {
   pid_t sid = getsid(getpid());
   kill(-sid, SIGTERM); // Envia o sinal SIGTERM para todos os processos na sessão
 }
 
-void executaExit(char *array[], int sizeArray, pid_t * arraySessoesBG, int * sizeArraySessoesBG){
+void executaExit(pid_t * arraySessoesBG, int * sizeArraySessoesBG){
   // Matando processos em background
   for (int j = 0; j < *sizeArraySessoesBG; j++) killpg(arraySessoesBG[j], SIGKILL);
   
-  // Liberando memória
-  // for (int j = 0; j < sizeArray; j++) free(array[j]);
-
   // Saindo
   exit(0);
 }
@@ -180,9 +172,6 @@ void executaEmBackground(char * argumentos[], int qtdMaxArgumentos, bool ehComan
       exit(1);
     }
 
-    pid_t acshSid = getsid(getpid()); //TODO: tirar isso (nao ta sendo usado, acredito que tenha sido para teste)
-    fprintf(stderr, "CHILD START SID: %d\n", acshSid);
-        
     // Se não for comando único (comandos agrupados)
     if (!ehComandoUnico) {
       signal(SIGUSR1, sigusr1Handler); // Tratador personalizado
@@ -210,9 +199,6 @@ void executaEmBackground(char * argumentos[], int qtdMaxArgumentos, bool ehComan
 
         // Processo neto (que vai executar o código)
         } else if (pid == 0) {
-          pid_t childSID = getsid(getpid()); //TODO: tirar isso (nao ta sendo usado, acredito que tenha sido para teste)
-          fprintf(stderr, "CHILD SID: %d\n", childSID);
-          
           // Redirecionar entrada e saída para /dev/null,
           // para executar em background
           int devnull = open("/dev/null", O_RDWR);
@@ -252,11 +238,16 @@ void executaEmBackground(char * argumentos[], int qtdMaxArgumentos, bool ehComan
     // Terminando o session leader após tudo acabar (esperando os outros terminarem)
     int status;
     pid_t pid = waitpid(-1, &status, 0);
-    if(WEXITSTATUS(status) == 1) fprintf(stderr, "Programa encerrado com EXIT 1.\n");
+    
+    // Quando um processo sai naturalmente 
+    if (WEXITSTATUS(status) == 1) fprintf(stderr, "Programa encerrado com EXIT 1.\n");
+    
+    // Quando um processo recebe um sinal e é terminado, então todos os outros processos da sessão também são terminados
+    if (WIFSIGNALED(status)) killpg(sidNovaSecao, SIGKILL);
+
     exit(0);
     
   } else {
-    // arraySessoesBG[(*sizeArraySessoesBG)++] = getsid(getpid());
     arraySessoesBG[(*sizeArraySessoesBG)++] = sidNovaSecao;
   }
 }
@@ -278,18 +269,16 @@ void executaEmForeground(char * argumentos[], int qtdMaxArgumentos) {
     printf("Erro ao criar processo\n");
     exit(1);
 
-  } else if (pid == 0) { // Processo filho
+  // Processo filho
+  } else if (pid == 0) { 
     signal(SIGINT, SIG_DFL);
     signal(SIGQUIT, SIG_DFL);
     signal(SIGTSTP, SIG_DFL);
 
-    //FIXME: consertar esse sinal handler
-    // ta bugado <-
-    
-    /* Executar o comando no processo filho */
+    // Executar o comando no processo filho
     execvp(argumentos[0], argumentos);
 
-    /* Se execvp retornar, houve um erro */
+    // Se execvp retornar, houve um erro
     fprintf(stderr, "Erro ao executar o comando: %s\n", argumentos[0]);
     exit(1); 
 
@@ -297,8 +286,6 @@ void executaEmForeground(char * argumentos[], int qtdMaxArgumentos) {
     int status;
     
     waitpid(pid, &status, 0); // Esperar o processo filho terminar
-    
-    //TODO: adicionar tratamento para SIGUSR1
 
     if(WIFEXITED(status)) {
       if(WEXITSTATUS(status) == 1) printf("Programa encerrado com EXIT 1.\n");

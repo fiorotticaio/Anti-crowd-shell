@@ -1,43 +1,29 @@
 # Anti-crowd-shell
 
-## IMPLEMENTAÇÕES PENDENTES
+## Como rodar
 
-Nessas seção marque as funcionalidades já implementadas e adicione as que ainda faltam ser implementadas
+```
+make
+./prog 3
+```
 
-- [x] Outra particularidade do acsh é que o sinal SIGUSR1 é um sinal muito perigoso e contagioso! Se um dos processos de background morre devido ao SIGUSR1, os demais processos “irmãos” que se encontram na mesma sessão (ou seja, que foram criados na mesma linha de comando) devem morrer de forma coletiva, devido ao mesmo sinal
-- [x] se um processo de background for criado isoladamente, como neste exemplo: acsh > comando1 ... ele não poderá morrer devido ao sinal SIGUSR1… nunca!
-- [X] acsh> comando1 % Neste exemplo acima, o acsh deverá criar um processo em foreground e pertencendo à mesma sessão do acsh . Neste caso, o prompt só será novamente exibido ao final da execução do processo de foreground criado
-- [x] se tiver <3 não pode ter %
-- [?] se houver um processo de foreground rodando, então este deve receber qualquer sinal gerado via “Ctrl-...” e executar o tratamento default.
-- [X] Quanto aos processos de background, estes não receberão nenhum sinal gerado via “Ctrl-...”, como é esperado. Mas, obviamente, se alguém enviar um sinal para um dos processos de background via chamada “kill”, esse sinal deverá ser entregue normalmente ao processo, o qual deverá executar o tratamento default (lembrando daquela pequena exceção do SIGUSR1 ... no caso de um processo em background que tenha sido criado isoladamente, ele se encontra protegido em sua respectiva sessão, então ele não morre devido ao SIGUSR1 … )
+## Funcionalidades
 
+O Acsh implementado possui as seguintes funcionalidades:
 
-## BUGS
+- [x] Processos em foreground
+- [x] Processos em background
+- [x] Processos em background são agrupados por novo session id
+- [x] Casos não permitidos: (permutações entre: <3  %  cd  exit)
+- [x] Limite de comandos (5 comandos)
+- [x] CD não cria processo
+- [x] Imunidade à SIGUSR1 de processos isolados
+- [x] Contágio de SIGUSR1 de processos agrupados
+- [x] Sinais default aos processo em background
+- [x] exit deve matar todos os processos em background
 
-Nessa seção marque os problemas que foram resolvidos e adicione os problemas ainda a resolver
+## Autores
 
-- [ ] não está sendo tratado o sinal caso um filho tenha algum erro.
-      Por exemplo, se o filho faz um exit(1), o pai não está captando com WEXITSTATUS
-      para saber o que houve...
-- [x] Faltando 1 free no valgrind
-- [x] Processos filho devem ser todos de uma mesma seção, diferente do pai
-- [x] o sinal Ctrl+D envia o caracter EOF para o acsh, e ai entra em loop infinito
-- [X] usar o comando `ls acsh.c acsh.h acsh.o main.c %` faz com que o acsh saia
-      sem nenhuma mensagem de log nem nada aparentemente esse comportamento acontece
-      quando você passa mais de 3 argumentos para o ls (NAO È BUG. A QTD MAX DE ARGUMENTOS É 3)
-- [X] sinais enviados ao acsh quando há processo em foreground devem passar pelo
-      processo antes, mas estão sendo enviados direto ao acsh
-- [X] o comando sleep não está sendo executado em background
-- [ ] o sinal Ctrl+D não é tratado caso seja utilizado juntamento com outros textos,
-      e ele faz com que infinitos processos sejam criados
-- [ ] quando um sinal é enviado para o processo em foreground, este executa o tratamento default,
-      mas o sinal também é enviado para o processo do acsh
-- [ ] após um comando em background executar, ele nao vira zumbi, mas fica esperando uma entrada do   
-      acsh e então e vira uma recursão onde o prox comando vai ser recebido pelo acsh desse 
-      processo filho que não virou zumbi e então o prox vai fazer o mesmo..... ao final fica 
-      um monte de processo encadeado, sendo que deveria existir vários zumbis...
-- [ ] o comando cd não deve ser executado com <3 (tratar isso)
-
-## EXTRA
-
-Adicionar mais comentários no código
+> Caio Fiorotti
+> Matheus Schreiber
+> Vinicius Amorim
